@@ -1,6 +1,6 @@
 ﻿# Mindmap
 
-[Mindmap](https://github.com/pthrust/propdevelopment/blob/propdevelopment/Task1/mindmap.png)
+<img src="/Task1/mindmap.png" alt="Mindmap" width="100%"/>
 
 # Рекомендации по снижению рисков
 
