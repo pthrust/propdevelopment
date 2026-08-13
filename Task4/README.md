@@ -172,6 +172,8 @@ minikube   Ready    control-plane   58d   v1.35.1
 > chmod +x cleanup.sh 
 > ./cleanup.sh 
 Starting cleanup...
+Switching to minikube context...
+Switched to context "minikube".
 Deleting ClusterRole and ClusterRoleBindings...
 clusterrole.rbac.authorization.k8s.io "security-viewer" deleted
 clusterrolebinding.rbac.authorization.k8s.io "ops-admins-binding" deleted
@@ -198,7 +200,5 @@ Property "users.viewer-user3" unset.
 Property "users.viewer-user4" unset.
 Deleting certificate files...
 Directory ./certs removed.
-Switching to minikube context...
-Switched to context "minikube".
 Cleanup completed successfully.
 ```
