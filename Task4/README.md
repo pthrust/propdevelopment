@@ -169,9 +169,6 @@ minikube   Ready    control-plane   58d   v1.35.1
 
 # Удаление добавленных изменеий через скрипт
 ```bash
-chmod +x cleanup.sh
-./cleanup.sh
-
 > chmod +x cleanup.sh 
 > ./cleanup.sh 
 Starting cleanup...
