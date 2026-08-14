@@ -48,7 +48,7 @@ kubernetes               ClusterIP   10.96.0.1        <none>        443/TCP   59
 200
 ```
 
-# Создайние сетевх политик non-admin-api-allow.yaml и admin-api-allow.yaml
+# Создание сетевых политик non-admin-api-allow.yaml и admin-api-allow.yaml
 
 ```yaml
 apiVersion: networking.k8s.io/v1
