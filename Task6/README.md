@@ -24,47 +24,61 @@ rolebinding.rbac.authorization.k8s.io/escalate-binding created
 
 # Отчёт по результатам анализа файла audit.log принадлежащему kube-apiserver-minikube
 
-## Подозрительные события
+```bash
+# Создать json файл, который будет содержать отфильтрованные события
+sh prepare_json.sh
+```
 
-1. Доступ к секретам:
+## Подозрительные события/инциденты
+
+1. **Доступ к секретам**:
    - Запрос для поиска
    ```bash
+   jq 'select(.objectRef.resource=="secrets")' audit.log | grep verb | sort | uniq
    ```
-   - Кто: ...
-   - Где: ...
-   - Почему подозрительно: ...
+   - Кто: kube-apiserver; kube-controller-manager; kubectl
+   - Примичание: множественный доступ с использованием команды watch и list
 
-2. Привилегированные поды:
+2. **Привилегированные поды**:
    - Запрос для поиска
    ```bash
    jq 'select(.objectRef.resource=="pods" and .verb=="create" and .stage=="RequestReceived" and .objectRef.name)' audit.log
    ```
-   - Кто: ...
-   - Комментарий: ...
+   - Кто: system:kube-scheduler
+   - Поды: attacker-pod; privileged-pod
+   - Митигейшн: Ограничить права на создание pods с привилегированным доступом
 
-3. Использование kubectl exec в чужом поде:
+3. **Использование kubectl exec в чужом поде**:
    - Запрос для поиска
    ```bash
+   jq 'select(.objectRef.subresource=="exec")' audit.log
    ```
-   - Кто: ...
-   - Что делал: ...
+   - Кто: kubectl
+   - Комманды: cat /etc/resolv.conf
+   - Что делал: Читает содержимое файла
 
-4. Создание RoleBinding с правами cluster-admin:
+4. **Создание RoleBinding с правами cluster-admin**:
    - Запрос для поиска
    ```bash
+   jq 'select(.objectRef.resource=="rolebindings" and .verb=="create" and .stage=="RequestReceived")' audit.log
    ```
-   - Кто: ...
-   - К чему привело: ...
+   - Кто: kubeadm, kubectl
+   - Пространства: kube-system; secure-ops
+   - Митигейшн: Заблокировать возможность создания RoleBinding
 
-5. Удаление audit-policy.yaml:
-   - Запрос для поиска
+5. **Удаление audit-policy.yaml**:
+   - Примичание: команда на удаление политик не отработала :( падает с ошибкой
    ```bash
+   kubectl apply -f audit-policy.yaml --as=admin
+   error: resource mapping not found for name: "" namespace: "" from "audit-policy.yaml": no matches for kind "Policy" in version "audit.k8s.io/v1"
+   ensure CRDs are installed first
    ```
-   - Кто: ...
-   - Возможные последствия: ...
+   - Возможные последствия: Сложность проведения анализа инцидентов
+   - Митигейшн: Запретить действие delete на объекты Policy + какие-то важны объекты
 
-## Вывод
+# Вывод
 
-...
-
+- Основная угроза исходит от пользователя minikube-user, который создал избыточные привилегии для serviceaccount monitoring  
+- Политика RBAC не должна позволять обычным пользователям создавать rolebinding с cluster-admin. Необходимо ограничить такие действия через административные роли и ClusterRole с правом bind только для доверенных субъектов  
+- Рекомендуется внедрить политику PodSecurity (например, запретить privileged: true) и ограничить доступ к exec в поды для неавторизованных пользователей  
 
