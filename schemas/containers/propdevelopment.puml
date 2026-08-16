@@ -1,0 +1,50 @@
+﻿@startuml
+
+title Контейнеры PropDevelopment (ЖКУ + Умный дом) — с новыми сервисами
+
+!includeurl ../include/C4_Component.puml
+
+Person(owner, "Собственник", "Владелец квартиры, использует мобильное приложение для управления ЖКУ и Умным домом")
+Person(guest, "Гость / Посетитель", "Звонит в домофон или подъезжает к шлагбауму")
+
+System_Boundary(prop_dev, "PropDevelopment") {
+    Container(mobile_app, "Мобильное приложение (собственники)", "Flutter/Kotlin", "Управление ЖКУ и Умным домом")
+    
+    Container(tenant_core, "tenant-core-app", "Kotlin, Spring Boot", "Бизнес-логика для собственников (ЖКУ + Умный дом)")
+    Container(tenant_db, "tenant-core-db", "PostgreSQL", "Профили, права, настройки УД, события")
+    
+    Container(crm_tenant, "CRM (ЖКУ)", "Kotlin, Spring Boot", "Управление данными собственников")
+    Container(crm_tenant_db, "crm-tenant-db", "PostgreSQL", "Данные собственников")
+    
+    Container(smart_gateway, "smart-home-gateway (Адаптер)", "Kotlin, Spring Boot, Resilience4j", "Адаптер к внешней платформе Умного дома")
+    
+    Container(dwh, "Хранилище данных (DWH)", "Greenplum + S3", "Аналитика и отчётность по ЖКУ и УД")
+    
+    Container(auth_service, "auth-service (Keycloak)", "Keycloak", "Аутентификация собственников")
+    Container(ad, "Active Directory", "MS Active Directory", "Аутентификация сотрудников")
+}
+
+System_Ext(smart_platform, "Платформа Умный дом (партнёр)", "Управление домофонами, шлагбаумами, распознавание лиц и номеров")
+System_Ext(payment, "Платёжная система", "Эквайринг")
+System_Ext(resource, "Поставщики ресурсов ЖКХ", "Внешние API")
+
+Rel(owner, mobile_app, "Использует", "HTTPS")
+Rel(guest, smart_platform, "Взаимодействует (звонок, номер авто)", "VoIP / камера")
+
+Rel(mobile_app, tenant_core, "Управление ЖКУ и УД", "HTTPS/REST (JWT)")
+Rel(tenant_core, tenant_db, "JDBC")
+Rel(tenant_core, crm_tenant, "Получение данных собственников", "REST")
+Rel(crm_tenant, crm_tenant_db, "JDBC")
+Rel(tenant_core, dwh, "Отправка событий", "CDC/Kafka")
+Rel(tenant_core, payment, "Оплата услуг", "HTTPS/REST")
+Rel(tenant_core, resource, "Взаимодействие с поставщиками", "REST")
+Rel(tenant_core, auth_service, "Проверка токенов", "OAuth2 Introspection")
+
+Rel(tenant_core, smart_gateway, "Команды управления (открыть/закрыть/статус)", "HTTPS/REST (OAuth2 Client Credentials)")
+Rel(smart_gateway, smart_platform, "Прокси команд, получение событий", "HTTPS/REST + Webhooks (HMAC)")
+Rel(smart_platform, smart_gateway, "Webhook-уведомления", "HTTPS (HMAC-SHA256)")
+Rel(smart_gateway, tenant_db, "Кэширование прав доступа", "JDBC")
+
+Rel(auth_service, ad, "Интеграция с AD для сотрудников", "LDAP")
+
+@enduml

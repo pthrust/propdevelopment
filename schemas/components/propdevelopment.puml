@@ -1,0 +1,26 @@
+﻿@startuml
+
+title Система PropDevelopment с интеграцией "Умный дом"
+
+!includeurl ../include/C4_Component.puml
+
+Person(owner, "Собственник", "Клиент")
+Person(guest, "Гость/Посетитель", "Человек, звонящий в домофон")
+
+System(prop_dev, "PropDevelopment", "Основная платформа управления недвижимостью и ЖКУ")
+
+System_Ext(smart_platform, "Платформа Умный дом (партнёр)", "Предоставляет API для:\n- управления домофонами\n- распознавания лиц\n- управления шлагбаумами\n- распознавания номеров")
+
+System_Ext(payment_system, "Платёжная система", "Обработка платежей за услуги Умного дома")
+System_Ext(gov_registry, "Гос. регистрационные органы", "СМЭВ для проверки прав собственности")
+
+Rel(owner, prop_dev, "Использует мобильное приложение", "HTTPS")
+Rel(guest, smart_platform, "Звонит в домофон", "VoIP/SIP")
+Rel(owner, smart_platform, "Управляет через приложение", "HTTPS/WSS")
+
+Rel(prop_dev, smart_platform, "Управляет устройствами, получает события", "HTTPS/REST, Webhooks")
+Rel(smart_platform, prop_dev, "Запрашивает права доступа (проверка, кто может войти)", "HTTPS/REST (JWT)")
+Rel(prop_dev, payment_system, "Инициирует платежи за УД", "HTTPS/REST")
+Rel(prop_dev, gov_registry, "Проверяет права собственности", "SOAP/СМЭВ")
+
+@enduml
