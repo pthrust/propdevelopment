@@ -1,3 +1,3 @@
-# propdevelopment
+﻿# propdevelopment
 
-Prepare commit
+Описания каждого задания находится в README.md соответствующей директории
